@@ -150,9 +150,12 @@
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
-    if (_handleFirstZoomBlock && (self.zoomScale > self.minimumZoomScale)) {
-        _handleFirstZoomBlock();
-        _handleFirstZoomBlock = nil;
+    if (_firstTimeZoomBlock && (self.zoomScale > self.minimumZoomScale)) {
+        _firstTimeZoomBlock();
+        _firstTimeZoomBlock = nil;
+    }
+    if (_didZoomBlock) {
+        _didZoomBlock(scrollView.zoomScale);
     }
     
     [self centerScrollViewContentsWithView:_imageView];
@@ -237,8 +240,8 @@
 - (void)singleTap {
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
-    if (_handleSingleTapBlock) {
-        _handleSingleTapBlock();
+    if (_didSingleTapBlock) {
+        _didSingleTapBlock();
     }
 }
 
@@ -257,9 +260,15 @@
                                                 withScale:scale
                                                withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
+            if (_didDoubleTapBlock) {
+                _didDoubleTapBlock(scale);
+            }
         }
         else if (self.zoomScale > self.minimumZoomScale) {
             [self setZoomScale:self.minimumZoomScale animated:YES];
+            if (_didDoubleTapBlock) {
+                _didDoubleTapBlock(self.minimumZoomScale);
+            }
         } else {
             CGPoint center = [sender locationInView:_imageView];
             CGFloat scale = self.minimumZoomScale * 3.0f;
@@ -267,6 +276,9 @@
                                                 withScale:scale
                                                withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
+            if (_didDoubleTapBlock) {
+                _didDoubleTapBlock(scale);
+            }
         }
 	}
 }
