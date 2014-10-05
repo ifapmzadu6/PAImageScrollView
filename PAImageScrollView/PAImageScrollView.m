@@ -53,16 +53,6 @@
     _imageViewClass = UIImageView.class;
 }
 
-- (void)removeFromSuperview {
-    [super removeFromSuperview];
-    
-    [_imageView removeFromSuperview];
-}
-
-- (void)layoutSubviews {
-    [super layoutSubviews];
-}
-
 - (void)centerScrollViewContentsWithView:(UIView *)view {
     // center the zoom view as it becomes smaller than the size of the screen
     CGSize boundsSize = self.bounds.size;
