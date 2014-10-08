@@ -90,14 +90,30 @@
 
 #pragma mark Methods
 - (void)setImage:(UIImage *)image {
-    if (_imageView) {
-        _imageView.image = image;
-        return;
-    }
+    [self setImage:image resetImageView:false];
+}
+
+- (void)setImage:(UIImage *)image resetImageView:(BOOL)isReset
+{
     if (!image) {
         return;
     }
     
+<<<<<<< HEAD
+    if (!isReset) {
+        if (_imageView) {
+            _imageView.image = image;
+            return;
+        }
+    }
+    
+    if (_imageView) {
+        [_imageView removeFromSuperview];
+        _imageView = nil;
+    }
+    
+=======
+>>>>>>> 1799d93f690e832e74aaabc2b3eeea860b9b90db
     CGFloat imageWidth = image.size.width;
     CGFloat imageHeight = image.size.height;
     if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
