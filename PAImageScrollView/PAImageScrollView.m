@@ -100,32 +100,40 @@
 
 #pragma mark Methods
 - (void)setImage:(UIImage *)image {
-    if (_imageView) {
-        _imageView.image = image;
-        return;
-    }
+    [self setImage:image resetImageView:false];
+}
+
+- (void)setImage:(UIImage *)image resetImageView:(BOOL)isReset
+{
     if (!image) {
         return;
     }
     
-	CGFloat imageWidth = image.size.width;
-	CGFloat imageHeight = image.size.height;
-	if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
-		imageHeight = imageHeight * CGRectGetWidth(self.bounds) / imageWidth;
-		imageWidth = CGRectGetWidth(self.bounds);
-	}
-	else {
-		imageWidth = imageWidth * CGRectGetHeight(self.bounds) / imageHeight;
-		imageHeight = CGRectGetHeight(self.bounds);
-	}
-	_imageSize = CGSizeMake(imageWidth, imageHeight);
-	
+    if (!isReset) {
+        if (_imageView) {
+            _imageView.image = image;
+            return;
+        }
+    }
+    
+    CGFloat imageWidth = image.size.width;
+    CGFloat imageHeight = image.size.height;
+    if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
+        imageHeight = imageHeight * CGRectGetWidth(self.bounds) / imageWidth;
+        imageWidth = CGRectGetWidth(self.bounds);
+    }
+    else {
+        imageWidth = imageWidth * CGRectGetHeight(self.bounds) / imageHeight;
+        imageHeight = CGRectGetHeight(self.bounds);
+    }
+    _imageSize = CGSizeMake(imageWidth, imageHeight);
+    
     _imageView = [[_imageViewClass alloc] initWithFrame:(CGRect){CGPointZero, _imageSize}];
     _imageView.contentMode = UIViewContentModeScaleAspectFill;
-	_imageView.image = image;
-	[self addSubview:_imageView];
-	
-	self.contentSize = _imageSize;
+    _imageView.image = image;
+    [self addSubview:_imageView];
+    
+    self.contentSize = _imageSize;
     [self setMaxMinZoomScalesForCurrentBounds];
     self.zoomScale = self.minimumZoomScale;
     
