@@ -53,16 +53,6 @@
     _imageViewClass = UIImageView.class;
 }
 
-- (void)removeFromSuperview {
-    [super removeFromSuperview];
-    
-    [_imageView removeFromSuperview];
-}
-
-- (void)layoutSubviews {
-    [super layoutSubviews];
-}
-
 - (void)centerScrollViewContentsWithView:(UIView *)view {
     // center the zoom view as it becomes smaller than the size of the screen
     CGSize boundsSize = self.bounds.size;
@@ -85,7 +75,7 @@
 
 - (void)setFrame:(CGRect)frame {
     BOOL sizeChanging = !CGSizeEqualToSize(frame.size, self.bounds.size);
-	BOOL notSizeZero = !CGSizeEqualToSize(_imageSize, CGSizeZero);
+    BOOL notSizeZero = !CGSizeEqualToSize(_imageSize, CGSizeZero);
     
     if (sizeChanging && notSizeZero) {
         [self prepareToResize];
@@ -109,6 +99,7 @@
         return;
     }
     
+<<<<<<< HEAD
     if (!isReset) {
         if (_imageView) {
             _imageView.image = image;
@@ -121,6 +112,8 @@
         _imageView = nil;
     }
     
+=======
+>>>>>>> 1799d93f690e832e74aaabc2b3eeea860b9b90db
     CGFloat imageWidth = image.size.width;
     CGFloat imageHeight = image.size.height;
     if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
@@ -164,14 +157,18 @@
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
     if (_firstTimeZoomBlock && (self.zoomScale > self.minimumZoomScale)) {
-        _firstTimeZoomBlock();
+        _firstTimeZoomBlock(self);
         _firstTimeZoomBlock = nil;
-    }
-    if (_didZoomBlock) {
-        _didZoomBlock(scrollView.zoomScale);
     }
     
     [self centerScrollViewContentsWithView:_imageView];
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
+{
+    if (_didZoomBlock) {
+        _didZoomBlock(self, scrollView.zoomScale);
+    }
 }
 
 - (void)setMaxMinZoomScalesForCurrentBounds {
@@ -180,8 +177,8 @@
     // calculate min/max zoomscale
     CGFloat xScale = boundsSize.width  / _imageSize.width;
     CGFloat yScale = boundsSize.height / _imageSize.height;
-	CGFloat minScale = MIN(xScale, yScale);
-	
+    CGFloat minScale = MIN(xScale, yScale);
+    
     self.minimumZoomScale = minScale;
     self.maximumZoomScale = minScale * 9.0f;
     
@@ -195,7 +192,7 @@
 - (void)prepareToResize {
     CGPoint boundsCenter = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
     _pointToCenterAfterResize = [self convertPoint:boundsCenter toView:_imageView];
-	
+    
     _scaleToRestoreAfterResize = self.zoomScale;
     
     // If we're at the minimum zoom scale, preserve that by returning 0, which will be converted to the minimum
@@ -210,7 +207,7 @@
     // Step 1: restore zoom scale, first making sure it is within the allowable range.
     CGFloat maxZoomScale = MAX(self.minimumZoomScale, _scaleToRestoreAfterResize);
     self.zoomScale = MIN(self.maximumZoomScale, maxZoomScale);
-	
+    
     // Step 2: restore center point, first making sure it is within the allowable range.
     
     // 2a: convert our desired center point back to our own coordinate space
@@ -246,15 +243,15 @@
 #pragma mark Gesture
 - (void)handleSingleTap:(UIGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateEnded){
-		[self performSelector:@selector(singleTap) withObject:nil afterDelay:0.4f];
-	}
+        [self performSelector:@selector(singleTap) withObject:nil afterDelay:0.4f];
+    }
 }
 
 - (void)singleTap {
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
     if (_didSingleTapBlock) {
-        _didSingleTapBlock();
+        _didSingleTapBlock(self);
     }
 }
 
@@ -263,8 +260,8 @@
         return;
     }
     
-	if (sender.state == UIGestureRecognizerStateEnded){
-		[NSObject cancelPreviousPerformRequestsWithTarget:self];
+    if (sender.state == UIGestureRecognizerStateEnded){
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
         if (self.zoomScale == self.minimumZoomScale * 3.0f) {
             CGPoint center = [sender locationInView:_imageView];
@@ -274,13 +271,13 @@
                                                withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
             if (_didDoubleTapBlock) {
-                _didDoubleTapBlock(scale);
+                _didDoubleTapBlock(self, scale);
             }
         }
         else if (self.zoomScale > self.minimumZoomScale) {
             [self setZoomScale:self.minimumZoomScale animated:YES];
             if (_didDoubleTapBlock) {
-                _didDoubleTapBlock(self.minimumZoomScale);
+                _didDoubleTapBlock(self, self.minimumZoomScale);
             }
         } else {
             CGPoint center = [sender locationInView:_imageView];
@@ -290,10 +287,10 @@
                                                withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
             if (_didDoubleTapBlock) {
-                _didDoubleTapBlock(scale);
+                _didDoubleTapBlock(self, scale);
             }
         }
-	}
+    }
 }
 
 - (CGRect)zoomRectForScrollView:(UIScrollView *)scrollView withScale:(CGFloat)scale withCenter:(CGPoint)center {

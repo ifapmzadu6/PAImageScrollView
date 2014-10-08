@@ -10,10 +10,10 @@
 
 @interface PAImageScrollView : UIScrollView
 
-@property (copy, nonatomic) void (^didSingleTapBlock)();
-@property (copy, nonatomic) void (^didDoubleTapBlock)(CGFloat toZoomScale);
-@property (copy, nonatomic) void (^didZoomBlock)(CGFloat zoomScale);
-@property (copy, nonatomic) void (^firstTimeZoomBlock)();
+@property (copy, nonatomic) void (^didSingleTapBlock)(PAImageScrollView *scrollView);
+@property (copy, nonatomic) void (^didDoubleTapBlock)(PAImageScrollView *scrollView, CGFloat toZoomScale);
+@property (copy, nonatomic) void (^didZoomBlock)(PAImageScrollView *scrollView, CGFloat zoomScale);
+@property (copy, nonatomic) void (^firstTimeZoomBlock)(PAImageScrollView *scrollView);
 
 @property (nonatomic) Class imageViewClass;
 @property (nonatomic, readonly) UIImageView *imageView;
