@@ -116,6 +116,11 @@
         }
     }
     
+    if (_imageView) {
+        [_imageView removeFromSuperview];
+        _imageView = nil;
+    }
+    
     CGFloat imageWidth = image.size.width;
     CGFloat imageHeight = image.size.height;
     if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
