@@ -99,7 +99,6 @@
         return;
     }
     
-<<<<<<< HEAD
     if (!isReset) {
         if (_imageView) {
             _imageView.image = image;
@@ -112,8 +111,6 @@
         _imageView = nil;
     }
     
-=======
->>>>>>> 1799d93f690e832e74aaabc2b3eeea860b9b90db
     CGFloat imageWidth = image.size.width;
     CGFloat imageHeight = image.size.height;
     if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
