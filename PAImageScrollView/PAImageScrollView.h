@@ -20,4 +20,5 @@
 @property (strong, nonatomic) UIImage *image;
 @property (nonatomic) BOOL isDisableZoom;
 
+- (void)setImage:(UIImage *)image resetImageView:(BOOL)isReset;
 @end
