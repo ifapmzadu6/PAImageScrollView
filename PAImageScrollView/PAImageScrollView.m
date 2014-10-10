@@ -209,7 +209,7 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     CGFloat fillScale = MAX(xScale, yScale);
     
     self.minimumZoomScale = minScale;
-    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? self.minimumZoomScale*_doubleTapZoomScale : fillScale;;
+    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? self.minimumZoomScale*_doubleTapZoomScale : fillScale;
     self.maximumZoomScale = self.middleZoomScale * self.doubleTapZoomScale;
 
     if (_isDisableZoom) {
