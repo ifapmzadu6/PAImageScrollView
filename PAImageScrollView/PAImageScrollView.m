@@ -154,6 +154,30 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     }
 }
 
+- (void)setZoomOption:(PAImageScrollViewZoomOption)zoomOption
+{
+    if (_zoomOption == zoomOption) {
+        return;
+    }
+    
+    _zoomOption = zoomOption;
+    if (_imageView) {
+        [self setMaxMinZoomScalesForCurrentBounds];
+    }
+}
+
+- (void)setDoubleTapZoomScale:(CGFloat)doubleTapZoomScale
+{
+    if (fabs(_doubleTapZoomScale - doubleTapZoomScale) < FLT_EPSILON) {
+        return;
+    }
+    
+    _doubleTapZoomScale = doubleTapZoomScale;
+    if (_imageView) {
+        [self setMaxMinZoomScalesForCurrentBounds];
+    }
+}
+
 #pragma mark - UIScrollViewDelegate
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
     return _imageView;
@@ -269,7 +293,7 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     if (sender.state == UIGestureRecognizerStateEnded){
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
-        if (fabs(self.zoomScale - self.middleZoomScale) < 0.000001) {
+        if (fabs(self.zoomScale - self.middleZoomScale) < FLT_EPSILON) {
             CGPoint center = [sender locationInView:_imageView];
             CGFloat scale = self.maximumZoomScale;
             CGRect zoomRect = [self zoomRectForScrollView:self
@@ -286,8 +310,9 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
                 _didDoubleTapBlock(self, self.minimumZoomScale);
             }
         } else {
+            bool justFillImage = fabs(self.minimumZoomScale-self.middleZoomScale) < 0.01;
             CGPoint center = [sender locationInView:_imageView];
-            CGFloat scale = self.middleZoomScale;
+            CGFloat scale = justFillImage ? self.maximumZoomScale : self.middleZoomScale;
             CGRect zoomRect = [self zoomRectForScrollView:self
                                                 withScale:scale
                                                withCenter:center];
