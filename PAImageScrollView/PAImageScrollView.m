@@ -8,11 +8,16 @@
 
 #import "PAImageScrollView.h"
 
+const CGFloat defaultZoomScale = 3.0;
+const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageScrollViewZoomOptionLinear;
+
 @interface PAImageScrollView () <UIScrollViewDelegate>
 
 @property (nonatomic) CGPoint pointToCenterAfterResize;
 @property (nonatomic) CGFloat scaleToRestoreAfterResize;
 @property (nonatomic) CGSize imageSize;
+
+@property (nonatomic) CGFloat middleZoomScale;
 
 @end
 
@@ -42,6 +47,7 @@
     self.delegate = self;
     self.exclusiveTouch = YES;
     self.zoomScale = 1.0f;
+    self.doubleTapZoomScale = defaultZoomScale;
     
     UITapGestureRecognizer *singleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
     singleTapGesture.numberOfTapsRequired = 1;
@@ -50,6 +56,7 @@
     doubleTapGesture.numberOfTapsRequired = 2;
     [self addGestureRecognizer:doubleTapGesture];
     
+    _zoomOption = defaultPAImageScrollViewZoomOption;
     _imageViewClass = UIImageView.class;
 }
 
@@ -175,12 +182,14 @@
     CGFloat xScale = boundsSize.width  / _imageSize.width;
     CGFloat yScale = boundsSize.height / _imageSize.height;
     CGFloat minScale = MIN(xScale, yScale);
+    CGFloat fillScale = MAX(xScale, yScale);
     
     self.minimumZoomScale = minScale;
-    self.maximumZoomScale = minScale * 9.0f;
-    
+    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? self.minimumZoomScale*_doubleTapZoomScale : fillScale;;
+    self.maximumZoomScale = self.middleZoomScale * self.doubleTapZoomScale;
+
     if (_isDisableZoom) {
-        self.maximumZoomScale = self.minimumZoomScale;
+        self.maximumZoomScale = self.middleZoomScale = self.minimumZoomScale;
     }
 }
 
@@ -260,7 +269,7 @@
     if (sender.state == UIGestureRecognizerStateEnded){
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
-        if (self.zoomScale == self.minimumZoomScale * 3.0f) {
+        if (fabs(self.zoomScale - self.middleZoomScale) < 0.000001) {
             CGPoint center = [sender locationInView:_imageView];
             CGFloat scale = self.maximumZoomScale;
             CGRect zoomRect = [self zoomRectForScrollView:self
@@ -278,7 +287,7 @@
             }
         } else {
             CGPoint center = [sender locationInView:_imageView];
-            CGFloat scale = self.minimumZoomScale * 3.0f;
+            CGFloat scale = self.middleZoomScale;
             CGRect zoomRect = [self zoomRectForScrollView:self
                                                 withScale:scale
                                                withCenter:center];
