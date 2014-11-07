@@ -67,15 +67,15 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     
     // center horizontally
     if (frameToCenter.size.width < boundsSize.width)
-        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2.0f;
+        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2.0;
     else
-        frameToCenter.origin.x = 0.0f;
+        frameToCenter.origin.x = 0.0;
     
     // center vertically
     if (frameToCenter.size.height < boundsSize.height)
-        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2.0f;
+        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2.0;
     else
-        frameToCenter.origin.y = 0.0f;
+        frameToCenter.origin.y = 0.0;
     
     view.frame = frameToCenter;
 }
@@ -118,15 +118,17 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
         _imageView = nil;
     }
     
-    CGFloat imageWidth = image.size.width;
-    CGFloat imageHeight = image.size.height;
-    if (CGRectGetWidth(self.bounds) > CGRectGetHeight(self.bounds)) {
-        imageHeight = imageHeight * CGRectGetWidth(self.bounds) / imageWidth;
-        imageWidth = CGRectGetWidth(self.bounds);
+    double imageWidth = image.size.width;
+    double imageHeight = image.size.height;
+    double width = CGRectGetWidth(self.bounds);
+    double height = CGRectGetHeight(self.bounds);
+    if (width > height) {
+        imageHeight = imageHeight * width / imageWidth;
+        imageWidth = width;
     }
     else {
-        imageWidth = imageWidth * CGRectGetHeight(self.bounds) / imageHeight;
-        imageHeight = CGRectGetHeight(self.bounds);
+        imageWidth = imageWidth * height / imageHeight;
+        imageHeight = height;
     }
     _imageSize = CGSizeMake(imageWidth, imageHeight);
     
@@ -209,11 +211,11 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     CGFloat fillScale = MAX(xScale, yScale);
     
     self.minimumZoomScale = minScale;
-    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? self.minimumZoomScale*_doubleTapZoomScale : fillScale;
-    self.maximumZoomScale = self.middleZoomScale * self.doubleTapZoomScale;
+    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? (self.minimumZoomScale*_doubleTapZoomScale) : fillScale;
+    self.maximumZoomScale = _middleZoomScale*_doubleTapZoomScale;
 
     if (_isDisableZoom) {
-        self.maximumZoomScale = self.middleZoomScale = self.minimumZoomScale;
+        self.maximumZoomScale = _middleZoomScale = self.minimumZoomScale;
     }
 }
 
@@ -244,8 +246,8 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     CGPoint boundsCenter = [self convertPoint:_pointToCenterAfterResize fromView:_imageView];
     
     // 2b: calculate the content offset that would yield that center point
-    CGPoint offset = CGPointMake(boundsCenter.x - self.bounds.size.width / 2.0f,
-                                 boundsCenter.y - self.bounds.size.height / 2.0f);
+    CGPoint offset = CGPointMake(boundsCenter.x - self.bounds.size.width / 2.0,
+                                 boundsCenter.y - self.bounds.size.height / 2.0);
     
     // 2c: restore offset, adjusted to be within the allowable range
     CGPoint maxOffset = [self maximumContentOffset];
@@ -324,12 +326,12 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     }
 }
 
-- (CGRect)zoomRectForScrollView:(UIScrollView *)scrollView withScale:(CGFloat)scale withCenter:(CGPoint)center {
+- (CGRect)zoomRectForScrollView:(UIScrollView *)scrollView withScale:(double)scale withCenter:(CGPoint)center {
     CGRect zoomRect;
     zoomRect.size.height = scrollView.frame.size.height / scale;
     zoomRect.size.width  = scrollView.frame.size.width  / scale;
-    zoomRect.origin.x = center.x - (zoomRect.size.width  / 2.0f);
-    zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0f);
+    zoomRect.origin.x = center.x - (zoomRect.size.width  / 2.0);
+    zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0);
     return zoomRect;
 }
 
