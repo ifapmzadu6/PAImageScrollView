@@ -15,17 +15,18 @@ typedef NS_ENUM(NSInteger, PAImageScrollViewZoomOption) {
 
 @interface PAImageScrollView : UIScrollView
 
-@property (copy, nonatomic) void (^didSingleTapBlock)(PAImageScrollView *scrollView);
-@property (copy, nonatomic) void (^didDoubleTapBlock)(PAImageScrollView *scrollView, CGFloat toZoomScale);
-@property (copy, nonatomic) void (^didZoomBlock)(PAImageScrollView *scrollView, CGFloat zoomScale);
-@property (copy, nonatomic) void (^firstTimeZoomBlock)(PAImageScrollView *scrollView);
+@property (copy, nonatomic) void (^ _Nullable didSingleTapBlock)(PAImageScrollView * _Nonnull scrollView);
+@property (copy, nonatomic) void (^ _Nullable didDoubleTapBlock)(PAImageScrollView * _Nonnull scrollView, CGFloat toZoomScale);
+@property (copy, nonatomic) void (^ _Nullable didZoomBlock)(PAImageScrollView * _Nonnull scrollView, CGFloat zoomScale);
+@property (copy, nonatomic) void (^ _Nullable firstTimeZoomBlock)(PAImageScrollView * _Nonnull scrollView);
 
-@property (nonatomic) Class imageViewClass;
+@property (nonatomic) Class _Nonnull imageViewClass;
 @property (nonatomic) PAImageScrollViewZoomOption zoomOption;
-@property (nonatomic, readonly) UIImageView *imageView;
-@property (strong, nonatomic) UIImage *image;
+@property (nonatomic, readonly) UIImageView * _Nonnull imageView;
+@property (strong, nonatomic) UIImage * _Nonnull image;
 @property (nonatomic) CGFloat doubleTapZoomScale;
 @property (nonatomic) BOOL isDisableZoom;
 
-- (void)setImage:(UIImage *)image resetImageView:(BOOL)isReset;
+- (void)setImage:(UIImage * _Nullable)image resetImageView:(BOOL)isReset;
+
 @end
