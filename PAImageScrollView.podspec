@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "PAImageScrollView"
-  s.version      = "0.4.1"
+  s.version      = "1.0.0"
   s.summary      = "A imageview that is can zooming."
   
   s.description  = <<-DESC
@@ -78,7 +78,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/ifapmzadu6/PAImageScrollView.git", :tag => "0.4.1" }
+  s.source       = { :git => "https://github.com/ifapmzadu6/PAImageScrollView.git", :tag => "1.0.0" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #

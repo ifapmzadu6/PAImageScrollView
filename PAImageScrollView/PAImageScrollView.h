@@ -23,7 +23,7 @@ typedef NS_ENUM(NSInteger, PAImageScrollViewZoomOption) {
 @property (nonatomic) Class _Nonnull imageViewClass;
 @property (nonatomic) PAImageScrollViewZoomOption zoomOption;
 @property (nonatomic, readonly) UIImageView * _Nonnull imageView;
-@property (strong, nonatomic) UIImage * _Nonnull image;
+@property (strong, nonatomic) UIImage * _Nullable image;
 @property (nonatomic) CGFloat doubleTapZoomScale;
 @property (nonatomic) BOOL isDisableZoom;
 
