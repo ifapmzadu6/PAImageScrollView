@@ -8,18 +8,20 @@
 
 #import "PAImageScrollView.h"
 
-const CGFloat defaultZoomScale = 3.0;
+
+const CGFloat defaultDoubleTapZoomScale = 3.0;
 const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageScrollViewZoomOptionLinear;
+
 
 @interface PAImageScrollView () <UIScrollViewDelegate>
 
+@property (nonatomic) CGSize imageSize;
 @property (nonatomic) CGPoint pointToCenterAfterResize;
 @property (nonatomic) CGFloat scaleToRestoreAfterResize;
-@property (nonatomic) CGSize imageSize;
-
 @property (nonatomic) CGFloat middleZoomScale;
 
 @end
+
 
 @implementation PAImageScrollView
 
@@ -47,7 +49,7 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     self.delegate = self;
     self.exclusiveTouch = YES;
     self.zoomScale = 1.0f;
-    self.doubleTapZoomScale = defaultZoomScale;
+    self.doubleTapZoomScale = defaultDoubleTapZoomScale;
     
     UITapGestureRecognizer *singleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
     singleTapGesture.numberOfTapsRequired = 1;
@@ -57,27 +59,18 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     [self addGestureRecognizer:doubleTapGesture];
     
     _zoomOption = defaultPAImageScrollViewZoomOption;
-    _imageViewClass = UIImageView.class;
 }
 
 - (void)centerScrollViewContentsWithView:(UIView *)view {
     // center the zoom view as it becomes smaller than the size of the screen
-    CGSize boundsSize = self.bounds.size;
-    CGRect frameToCenter = view.frame;
-    
+    CGSize size = self.bounds.size;
+    CGRect frame = view.frame;
     // center horizontally
-    if (frameToCenter.size.width < boundsSize.width)
-        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2.0;
-    else
-        frameToCenter.origin.x = 0.0;
-    
+    frame.origin.x = (frame.size.width < size.width) ? (size.width - frame.size.width) / 2 : 0;
     // center vertically
-    if (frameToCenter.size.height < boundsSize.height)
-        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2.0;
-    else
-        frameToCenter.origin.y = 0.0;
+    frame.origin.y = (frame.size.height < size.height) ? (size.height - frame.size.height) / 2 : 0;
     
-    view.frame = frameToCenter;
+    view.frame = frame;
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -96,21 +89,26 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
 }
 
 #pragma mark Methods
+- (UIImage *)image {
+    return _imageView.image;
+}
+
 - (void)setImage:(UIImage *)image {
     [self setImage:image resetImageView:false];
 }
 
-- (void)setImage:(UIImage *)image resetImageView:(BOOL)isReset
-{
+- (void)setImage:(UIImage * _Nullable)image resetImageView:(BOOL)isReset {
+    [self setImage:image resetImageView:isReset imageViewClass:UIImageView.class];
+}
+
+- (void)setImage:(UIImage * _Nullable)image resetImageView:(BOOL)isReset imageViewClass:(Class _Nonnull)imageViewClass {
     if (!image) {
         return;
     }
     
-    if (!isReset) {
-        if (_imageView) {
-            _imageView.image = image;
-            return;
-        }
+    if (!isReset && _imageView) {
+        _imageView.image = image;
+        return;
     }
     
     if (_imageView) {
@@ -118,37 +116,23 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
         _imageView = nil;
     }
     
-    double imageWidth = image.size.width;
-    double imageHeight = image.size.height;
-    double width = CGRectGetWidth(self.bounds);
-    double height = CGRectGetHeight(self.bounds);
-    if (width > height) {
-        imageHeight = imageHeight * width / imageWidth;
-        imageWidth = width;
-    }
-    else {
-        imageWidth = imageWidth * height / imageHeight;
-        imageHeight = height;
-    }
-    _imageSize = CGSizeMake(imageWidth, imageHeight);
-    
-    _imageView = [[_imageViewClass alloc] initWithFrame:(CGRect){CGPointZero, _imageSize}];
+    CGSize imageSize = AVMakeRectWithAspectRatioInsideRect(image.size, self.bounds).size;
+    _imageView = [[imageViewClass alloc] initWithFrame:(CGRect){CGPointZero, imageSize}];
     _imageView.contentMode = UIViewContentModeScaleAspectFill;
     _imageView.image = image;
     [self addSubview:_imageView];
     
-    self.contentSize = _imageSize;
+    _imageSize = imageSize;
+    self.contentSize = imageSize;
     [self setMaxMinZoomScalesForCurrentBounds];
     self.zoomScale = self.minimumZoomScale;
-    
     [self centerScrollViewContentsWithView:_imageView];
 }
 
-- (UIImage *)image {
-    return _imageView.image;
-}
-
 - (void)setIsDisableZoom:(BOOL)isDisableZoom {
+    if (_isDisableZoom == isDisableZoom) {
+        return;
+    }
     _isDisableZoom = isDisableZoom;
     
     if (isDisableZoom) {
@@ -156,25 +140,23 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     }
 }
 
-- (void)setZoomOption:(PAImageScrollViewZoomOption)zoomOption
-{
+- (void)setZoomOption:(PAImageScrollViewZoomOption)zoomOption {
     if (_zoomOption == zoomOption) {
         return;
     }
-    
     _zoomOption = zoomOption;
+    
     if (_imageView) {
         [self setMaxMinZoomScalesForCurrentBounds];
     }
 }
 
-- (void)setDoubleTapZoomScale:(CGFloat)doubleTapZoomScale
-{
+- (void)setDoubleTapZoomScale:(CGFloat)doubleTapZoomScale {
     if (fabs(_doubleTapZoomScale - doubleTapZoomScale) < FLT_EPSILON) {
         return;
     }
-    
     _doubleTapZoomScale = doubleTapZoomScale;
+    
     if (_imageView) {
         [self setMaxMinZoomScalesForCurrentBounds];
     }
@@ -194,51 +176,44 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     [self centerScrollViewContentsWithView:_imageView];
 }
 
-- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
-{
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale {
     if (_didZoomBlock) {
         _didZoomBlock(self, scrollView.zoomScale);
     }
 }
 
 - (void)setMaxMinZoomScalesForCurrentBounds {
-    CGSize boundsSize = self.bounds.size;
-    
     // calculate min/max zoomscale
-    CGFloat xScale = boundsSize.width  / _imageSize.width;
-    CGFloat yScale = boundsSize.height / _imageSize.height;
-    CGFloat minScale = MIN(xScale, yScale);
-    CGFloat fillScale = MAX(xScale, yScale);
-    
-    self.minimumZoomScale = minScale;
-    self.middleZoomScale  = self.zoomOption == PAImageScrollViewZoomOptionLinear ? (self.minimumZoomScale*_doubleTapZoomScale) : fillScale;
-    self.maximumZoomScale = _middleZoomScale*_doubleTapZoomScale;
-
+    CGFloat xScale = self.bounds.size.width  / _imageSize.width;
+    CGFloat yScale = self.bounds.size.height / _imageSize.height;
+    self.minimumZoomScale = MIN(xScale, yScale);
     if (_isDisableZoom) {
         self.maximumZoomScale = _middleZoomScale = self.minimumZoomScale;
+    }
+    else {
+        _middleZoomScale = (_zoomOption == PAImageScrollViewZoomOptionLinear) ? (self.minimumZoomScale * _doubleTapZoomScale) : MAX(xScale, yScale);
+        self.maximumZoomScale = _middleZoomScale * _doubleTapZoomScale;
     }
 }
 
 #pragma mark - Rotation support
-
 - (void)prepareToResize {
     CGPoint boundsCenter = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
     _pointToCenterAfterResize = [self convertPoint:boundsCenter toView:_imageView];
-    
     _scaleToRestoreAfterResize = self.zoomScale;
     
     // If we're at the minimum zoom scale, preserve that by returning 0, which will be converted to the minimum
     // allowable scale when the scale is restored.
-    if (_scaleToRestoreAfterResize <= self.minimumZoomScale + FLT_EPSILON)
+    if (_scaleToRestoreAfterResize <= self.minimumZoomScale + FLT_EPSILON) {
         _scaleToRestoreAfterResize = 0;
+    }
 }
 
 - (void)recoverFromResizing {
     [self setMaxMinZoomScalesForCurrentBounds];
     
     // Step 1: restore zoom scale, first making sure it is within the allowable range.
-    CGFloat maxZoomScale = MAX(self.minimumZoomScale, _scaleToRestoreAfterResize);
-    self.zoomScale = MIN(self.maximumZoomScale, maxZoomScale);
+    self.zoomScale = MIN(self.maximumZoomScale, MAX(self.minimumZoomScale, _scaleToRestoreAfterResize));
     
     // Step 2: restore center point, first making sure it is within the allowable range.
     
@@ -251,25 +226,15 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     
     // 2c: restore offset, adjusted to be within the allowable range
     CGPoint maxOffset = [self maximumContentOffset];
-    CGPoint minOffset = [self minimumContentOffset];
-    
-    CGFloat realMaxOffset = MIN(maxOffset.x, offset.x);
-    offset.x = MAX(minOffset.x, realMaxOffset);
-    
-    realMaxOffset = MIN(maxOffset.y, offset.y);
-    offset.y = MAX(minOffset.y, realMaxOffset);
-    
+    offset.x = MAX(0, MIN(maxOffset.x, offset.x));
+    offset.y = MAX(0, MIN(maxOffset.y, offset.y));
     self.contentOffset = offset;
 }
 
 - (CGPoint)maximumContentOffset {
     CGSize contentSize = self.contentSize;
-    CGSize boundsSize = self.bounds.size;
-    return CGPointMake(contentSize.width - boundsSize.width, contentSize.height - boundsSize.height);
-}
-
-- (CGPoint)minimumContentOffset {
-    return CGPointZero;
+    CGSize size = self.bounds.size;
+    return CGPointMake(contentSize.width - size.width, contentSize.height - size.height);
 }
 
 #pragma mark Gesture
@@ -295,12 +260,10 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
     if (sender.state == UIGestureRecognizerStateEnded){
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
-        if (fabs(self.zoomScale - self.middleZoomScale) < FLT_EPSILON) {
+        if (fabs(self.zoomScale - _middleZoomScale) < FLT_EPSILON) {
             CGPoint center = [sender locationInView:_imageView];
             CGFloat scale = self.maximumZoomScale;
-            CGRect zoomRect = [self zoomRectForScrollView:self
-                                                withScale:scale
-                                               withCenter:center];
+            CGRect zoomRect = [self zoomRectForScrollView:self withScale:scale withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
             if (_didDoubleTapBlock) {
                 _didDoubleTapBlock(self, scale);
@@ -311,13 +274,12 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
             if (_didDoubleTapBlock) {
                 _didDoubleTapBlock(self, self.minimumZoomScale);
             }
-        } else {
-            bool justFillImage = fabs(self.minimumZoomScale-self.middleZoomScale) < 0.01;
+        }
+        else {
+            bool justFillImage = fabs(self.minimumZoomScale - _middleZoomScale) < 0.01;
             CGPoint center = [sender locationInView:_imageView];
-            CGFloat scale = justFillImage ? self.maximumZoomScale : self.middleZoomScale;
-            CGRect zoomRect = [self zoomRectForScrollView:self
-                                                withScale:scale
-                                               withCenter:center];
+            CGFloat scale = justFillImage ? self.maximumZoomScale : _middleZoomScale;
+            CGRect zoomRect = [self zoomRectForScrollView:self withScale:scale withCenter:center];
             [self zoomToRect:zoomRect animated:YES];
             if (_didDoubleTapBlock) {
                 _didDoubleTapBlock(self, scale);
@@ -329,8 +291,8 @@ const PAImageScrollViewZoomOption defaultPAImageScrollViewZoomOption = PAImageSc
 - (CGRect)zoomRectForScrollView:(UIScrollView *)scrollView withScale:(double)scale withCenter:(CGPoint)center {
     CGRect zoomRect;
     zoomRect.size.height = scrollView.frame.size.height / scale;
-    zoomRect.size.width  = scrollView.frame.size.width  / scale;
-    zoomRect.origin.x = center.x - (zoomRect.size.width  / 2.0);
+    zoomRect.size.width  = scrollView.frame.size.width / scale;
+    zoomRect.origin.x = center.x - (zoomRect.size.width / 2.0);
     zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0);
     return zoomRect;
 }

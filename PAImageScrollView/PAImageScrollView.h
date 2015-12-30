@@ -7,11 +7,14 @@
 //
 
 @import UIKit;
+@import AVFoundation;
+
 
 typedef NS_ENUM(NSInteger, PAImageScrollViewZoomOption) {
     PAImageScrollViewZoomOptionLinear, //default
     PAImageScrollViewZoomOptionAdjust
 };
+
 
 @interface PAImageScrollView : UIScrollView
 
@@ -20,13 +23,15 @@ typedef NS_ENUM(NSInteger, PAImageScrollViewZoomOption) {
 @property (copy, nonatomic) void (^ _Nullable didZoomBlock)(PAImageScrollView * _Nonnull scrollView, CGFloat zoomScale);
 @property (copy, nonatomic) void (^ _Nullable firstTimeZoomBlock)(PAImageScrollView * _Nonnull scrollView);
 
-@property (nonatomic) Class _Nonnull imageViewClass;
-@property (nonatomic) PAImageScrollViewZoomOption zoomOption;
 @property (nonatomic, readonly) UIImageView * _Nonnull imageView;
-@property (strong, nonatomic) UIImage * _Nullable image;
+
+@property (nonatomic) PAImageScrollViewZoomOption zoomOption;
 @property (nonatomic) CGFloat doubleTapZoomScale;
 @property (nonatomic) BOOL isDisableZoom;
 
+- (UIImage * _Nullable)image;
+- (void)setImage:(UIImage * _Nullable)image;
 - (void)setImage:(UIImage * _Nullable)image resetImageView:(BOOL)isReset;
+- (void)setImage:(UIImage * _Nullable)image resetImageView:(BOOL)isReset imageViewClass:(Class _Nonnull)imageViewClass;
 
 @end
